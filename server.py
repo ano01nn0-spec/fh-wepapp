@@ -15,10 +15,8 @@ def index():
     with open(INDEX_PATH, "r", encoding="utf-8") as f:
         content = f.read()
     
-    # استبدال صريح لأي قيمة قديمة بالرقم الصحيح
-    content = content.replace('"YOUR_BLOCK_ID"', '"40807"')
-    
     response = Response(content, mimetype="text/html")
+    # منع الكاش تماماً لضمان وصول التحديث فوراً
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"

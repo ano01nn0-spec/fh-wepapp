@@ -1,18 +1,24 @@
 #!/usr/bin/env python3
-"""
-Minimal web server to serve the Telegram Mini App (index.html) on Railway.
-Railway sets the PORT environment variable automatically.
-"""
 import os
-from flask import Flask, send_from_directory
+from flask import Flask, Response
 
-app = Flask(__name__, static_folder=None)
+app = Flask(__name__)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+INDEX_PATH = os.path.join(BASE_DIR, "index.html")
 
 @app.route("/")
 def index():
-    response = send_from_directory(BASE_DIR, "index.html")
+    if not os.path.exists(INDEX_PATH):
+        return "index.html not found", 404
+        
+    with open(INDEX_PATH, "r", encoding="utf-8") as f:
+        content = f.read()
+    
+    # استبدال صريح لأي قيمة قديمة بالرقم الصحيح
+    content = content.replace('"YOUR_BLOCK_ID"', '"40807"')
+    
+    response = Response(content, mimetype="text/html")
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"

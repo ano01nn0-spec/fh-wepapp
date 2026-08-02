@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>FiberHome Password</title>
 <script src="https://telegram.org/js/telegram-web-app.js" defer></script>
-<script src="https://sad.adsgram.ai/js/sad.min.js" defer></script>
 <style>
   * { box-sizing: border-box; }
   body {
@@ -78,15 +77,6 @@
     margin-top: 18px;
     font-size: 15px;
   }
-  .hourglass {
-    font-size: 40px;
-    margin-bottom: 10px;
-  }
-  .loading-note {
-    margin-top: 40px;
-    font-size: 13px;
-    opacity: 0.5;
-  }
 </style>
 </head>
 <body>
@@ -113,13 +103,16 @@ window.addEventListener('DOMContentLoaded', function () {
 const tg = window.Telegram?.WebApp;
 if (tg) { tg.ready(); tg.expand(); }
 
+// ---- Smartlink Adsterra ----
+const SMARTLINK_URL = "https://www.effectivecpmnetwork.com/gnvrir2ju?key=29a98f35960098ca2a8b2d47767175e4";
+
 // ---- read router name from URL query param ----
 const params = new URLSearchParams(window.location.search);
 const routerName = (params.get('name') || '').trim();
 
 document.getElementById('routerValue').textContent = routerName || '(غير محدد)';
 
-// ---- password generation logic (mirrors the Python bot) ----
+// ---- password generation logic ----
 function swapChar(ch) {
   const val = parseInt(ch, 16);
   return (15 - val).toString(16);
@@ -134,9 +127,6 @@ function getPassword(name) {
   return 'wlan' + swapped;
 }
 
-// ---- Adsgram init ----
-const AdController = window.Adsgram ? window.Adsgram.init({ blockId: "40828", debug: true }) : null;
-
 const revealBtn = document.getElementById('revealBtn');
 const statusEl = document.getElementById('status');
 const passwordBox = document.getElementById('passwordBox');
@@ -144,9 +134,9 @@ const passwordValue = document.getElementById('passwordValue');
 const errorBox = document.getElementById('errorBox');
 const copyBtn = document.getElementById('copyBtn');
 
-// enable the button now that everything is loaded
+// enable button
 revealBtn.disabled = false;
-revealBtn.textContent = '🔓 مشاهدة إعلان و كشف الباسوورد';
+revealBtn.textContent = '🔓 مشاهدة الإعلان و كشف الباسوورد';
 
 function showPassword() {
   try {
@@ -168,26 +158,15 @@ revealBtn.addEventListener('click', () => {
     return;
   }
 
-  revealBtn.disabled = true;
-  statusEl.innerHTML = '<div class="hourglass">⏳</div>جاري تحميل الإعلان...';
-
-  if (!AdController) {
-    // Fallback: no ad network loaded, still show password after 5s
-    setTimeout(showPassword, 5000);
-    return;
+  // 1. فتح رابط الإعلان في المتصفح الخارجي وتوثيق الضغطة في Adsterra
+  if (tg && tg.openLink) {
+    tg.openLink(SMARTLINK_URL);
+  } else {
+    window.open(SMARTLINK_URL, '_blank');
   }
 
-  AdController.show()
-    .then(() => {
-      // Ad watched fully -> reveal password
-      showPassword();
-    })
-    .catch((result) => {
-      // Ad failed/skipped/not available -> you can choose to still reveal
-      // or block. Here we still reveal after a short wait to not lose customers.
-      statusEl.textContent = 'تعذر عرض الإعلان، جاري المتابعة...';
-      setTimeout(showPassword, 2000);
-    });
+  // 2. كشف كلمة السر فوراً
+  showPassword();
 });
 
 copyBtn.addEventListener('click', () => {

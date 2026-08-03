@@ -8,7 +8,7 @@
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-    <!-- Monetag Telegram Mini App SDK -->
+    <!-- Monetag SDK -->
     <script src="https://libtl.com/sdk.js" data-zone="11487502" data-sdk="show_11487502"></script>
 
     <style>
@@ -51,15 +51,12 @@
             font-weight: bold;
             cursor: pointer;
             width: 100%;
-            transition: background 0.2s, opacity 0.2s;
+            transition: background 0.2s;
         }
         .btn-watch:disabled {
             background-color: #555555;
             cursor: not-allowed;
             opacity: 0.7;
-        }
-        .btn-watch:active:not(:disabled) {
-            background-color: #1a8ad8;
         }
     </style>
 </head>
@@ -74,9 +71,12 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    // استخراج اسم الراوتر من الـ Query String
+    // جلب اسم الراوتر و id المستخدم
     const urlParams = new URLSearchParams(window.location.search);
     const routerName = urlParams.get('name') || '';
+    
+    // الحصول على chat_id من بيئة تليجرام
+    const chatId = tg.initDataUnsafe?.user?.id || urlParams.get('chat_id') || '';
 
     function watchRewardedAd() {
         const btn = document.getElementById('adBtn');
@@ -86,26 +86,34 @@
         status.innerText = "Loading ad...";
         status.style.color = "#f1c40f";
 
-        // التحقق من توفر دالة Monetag الخاصة بالـ Zone ID
         if (typeof show_11487502 === 'function') {
             show_11487502().then(() => {
-                // تنجح فقط إذا شاهد المستخدم الإعلان كاملاً
-                status.innerText = "✅ Ad verified successfully! Unlocking password...";
+                status.innerText = "✅ Ad verified! Sending password to chat...";
                 status.style.color = "#2ecc71";
 
-                setTimeout(() => {
-                    tg.sendData(JSON.stringify({ name: routerName }));
+                // إرسال طلب للموافق للبوت عبر HTTP API المباشر
+                fetch('/api/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: routerName,
+                        chat_id: chatId
+                    })
+                }).then(() => {
+                    setTimeout(() => { tg.close(); }, 1000);
+                }).catch(err => {
+                    console.error("API error:", err);
                     tg.close();
-                }, 800);
+                });
+
             }).catch((err) => {
-                // في حالة إغلاق الإعلان قبل انتشاره أو حدوث خطأ
-                console.error("Ad failed or closed early:", err);
+                console.error("Ad closed early or failed:", err);
                 status.innerText = "❌ You must watch the entire ad to receive your password.";
                 status.style.color = "#e74c3c";
                 btn.disabled = false;
             });
         } else {
-            status.innerText = "⚠️ Ad SDK is still loading. Please wait a few seconds and try again.";
+            status.innerText = "⚠️ Ad network loading... Please try again in 3 seconds.";
             status.style.color = "#e67e22";
             btn.disabled = false;
         }

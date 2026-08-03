@@ -9,7 +9,6 @@ app = Flask(__name__)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 INDEX_PATH = os.path.join(BASE_DIR, "index.html")
 
-# جلب توكن البوت من متغيرات البيئة في Railway
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "").strip()
 
 
@@ -42,7 +41,6 @@ def index():
         content = f.read()
     
     response = Response(content, mimetype="text/html")
-    # منع الكاش تماماً لضمان وصول التحديث فوراً
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"

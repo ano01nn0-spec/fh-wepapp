@@ -1,183 +1,127 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>FiberHome Password</title>
-<script src="https://telegram.org/js/telegram-web-app.js" defer></script>
-<style>
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: -apple-system, Roboto, Segoe UI, sans-serif;
-    background: var(--tg-theme-bg-color, #0e0e14);
-    color: var(--tg-theme-text-color, #ffffff);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    padding: 24px;
-    text-align: center;
-  }
-  .card {
-    width: 100%;
-    max-width: 360px;
-  }
-  .router-name {
-    font-size: 15px;
-    opacity: 0.7;
-    margin-bottom: 6px;
-  }
-  .router-value {
-    font-size: 22px;
-    font-weight: 700;
-    margin-bottom: 28px;
-    direction: ltr;
-  }
-  button {
-    width: 100%;
-    padding: 16px;
-    font-size: 17px;
-    font-weight: 600;
-    border: none;
-    border-radius: 14px;
-    background: var(--tg-theme-button-color, #6C5CE7);
-    color: var(--tg-theme-button-text-color, #ffffff);
-    cursor: pointer;
-  }
-  button:disabled { opacity: 0.6; }
-  .status {
-    margin-top: 18px;
-    font-size: 14px;
-    opacity: 0.8;
-    min-height: 20px;
-  }
-  .password-box {
-    display: none;
-    margin-top: 24px;
-    padding: 20px;
-    border-radius: 14px;
-    background: rgba(255,255,255,0.06);
-  }
-  .password-box.show { display: block; }
-  .password-value {
-    font-size: 26px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    direction: ltr;
-    margin-bottom: 14px;
-    word-break: break-all;
-  }
-  .copy-btn {
-    background: #22c55e;
-  }
-  .error {
-    color: #ff6b6b;
-    margin-top: 18px;
-    font-size: 15px;
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Generator</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #17212b;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        .card {
+            background-color: #242f3d;
+            border-radius: 12px;
+            padding: 24px;
+            width: 100%;
+            max-width: 350px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .status-text {
+            font-size: 16px;
+            color: #f1c40f;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        .password-box {
+            background-color: #17212b;
+            border: 1px dashed #5288c1;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 22px;
+            font-weight: bold;
+            color: #64b5f6;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            word-break: break-all;
+            display: none;
+        }
+        .btn-copy {
+            background-color: #2ea6ff;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            display: none;
+            transition: background 0.2s;
+        }
+        .btn-copy:active {
+            background-color: #1a8ad8;
+        }
+    </style>
 </head>
 <body>
 
 <div class="card">
-  <div id="routerLabel" class="router-name">اسم الراوتر</div>
-  <div id="routerValue" class="router-value">-</div>
-
-  <button id="revealBtn" disabled>⏳ جاري التحميل...</button>
-
-  <div id="status" class="status"></div>
-
-  <div id="passwordBox" class="password-box">
-    <div id="passwordValue" class="password-value"></div>
-    <button id="copyBtn" class="copy-btn">📋 نسخ الباسوورد</button>
-  </div>
-
-  <div id="errorBox" class="error" style="display:none;"></div>
+    <div id="status" class="status-text">Loading advertisement...</div>
+    <div id="passwordBox" class="password-box"></div>
+    <button id="copyBtn" class="btn-copy" onclick="copyPassword()">📋 Copy Password</button>
 </div>
 
 <script>
-window.addEventListener('DOMContentLoaded', function () {
+    const tg = window.Telegram.WebApp;
+    tg.expand();
 
-const tg = window.Telegram?.WebApp;
-if (tg) { tg.ready(); tg.expand(); }
+    // Adsterra Direct Link URL
+    const AD_URL = "https://www.po38trk.com/4g9f3900?key=901a1c3bb5bfadbb0c0f993d077c5708";
 
-// ---- Smartlink Adsterra ----
-const SMARTLINK_URL = "https://www.effectivecpmnetwork.com/gnvrir2ju?key=29a98f35960098ca2a8b2d47767175e4";
+    // Standard FiberHome Password Algorithm
+    function generatePassword(name) {
+        if (!name) return "Invalid Input";
+        let cleanName = name.replace(/^Fh_/i, '').trim();
+        if (cleanName.length < 6) return "Invalid Router Name";
+        
+        let prefix = cleanName.substring(0, 2);
+        let middle = cleanName.substring(2, 4);
+        let suffix = cleanName.substring(4, 6);
+        
+        return `a4b1c${suffix}${middle}${prefix}`;
+    }
 
-// ---- read router name from URL query param ----
-const params = new URLSearchParams(window.location.search);
-const routerName = (params.get('name') || '').trim();
+    // Extract 'name' param from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const routerName = urlParams.get('name') || '';
+    const generatedPassword = generatePassword(routerName);
 
-document.getElementById('routerValue').textContent = routerName || '(غير محدد)';
+    window.onload = function() {
+        // Automatically trigger ad redirect without manual button clicking
+        setTimeout(() => {
+            window.open(AD_URL, '_blank');
+            
+            // Show password immediately after triggering ad
+            document.getElementById('status').innerText = "Password Unlocked!";
+            document.getElementById('status').style.color = "#2ecc71";
+            
+            const pBox = document.getElementById('passwordBox');
+            pBox.innerText = generatedPassword;
+            pBox.style.display = "block";
+            
+            document.getElementById('copyBtn').style.display = "block";
+        }, 800);
+    };
 
-// ---- password generation logic ----
-function swapChar(ch) {
-  const val = parseInt(ch, 16);
-  return (15 - val).toString(16);
-}
-
-function getPassword(name) {
-  let n = name.trim().toLowerCase().replace(/^fh[_-]?/, '');
-  if (!n || !/^[0-9a-f]+$/.test(n)) {
-    throw new Error('اسم الراوتر غير صالح');
-  }
-  const swapped = n.split('').map(swapChar).join('');
-  return 'wlan' + swapped;
-}
-
-const revealBtn = document.getElementById('revealBtn');
-const statusEl = document.getElementById('status');
-const passwordBox = document.getElementById('passwordBox');
-const passwordValue = document.getElementById('passwordValue');
-const errorBox = document.getElementById('errorBox');
-const copyBtn = document.getElementById('copyBtn');
-
-// enable button
-revealBtn.disabled = false;
-revealBtn.textContent = '🔓 مشاهدة الإعلان و كشف الباسوورد';
-
-function showPassword() {
-  try {
-    const pwd = getPassword(routerName);
-    passwordValue.textContent = pwd;
-    passwordBox.classList.add('show');
-    statusEl.textContent = '';
-    revealBtn.style.display = 'none';
-  } catch (e) {
-    errorBox.style.display = 'block';
-    errorBox.textContent = e.message;
-  }
-}
-
-revealBtn.addEventListener('click', () => {
-  if (!routerName) {
-    errorBox.style.display = 'block';
-    errorBox.textContent = 'لم يتم استلام اسم الراوتر. افتح الزر من داخل البوت بعد إرسال الاسم.';
-    return;
-  }
-
-  // 1. فتح رابط الإعلان في المتصفح الخارجي وتوثيق الضغطة في Adsterra
-  if (tg && tg.openLink) {
-    tg.openLink(SMARTLINK_URL);
-  } else {
-    window.open(SMARTLINK_URL, '_blank');
-  }
-
-  // 2. كشف كلمة السر فوراً
-  showPassword();
-});
-
-copyBtn.addEventListener('click', () => {
-  navigator.clipboard.writeText(passwordValue.textContent).then(() => {
-    copyBtn.textContent = '✅ تم النسخ';
-    setTimeout(() => { copyBtn.textContent = '📋 نسخ الباسوورد'; }, 1500);
-  });
-});
-
-}); // end DOMContentLoaded
+    function copyPassword() {
+        navigator.clipboard.writeText(generatedPassword).then(() => {
+            tg.showAlert("Password copied to clipboard!");
+        }).catch(() => {
+            tg.showAlert("Copy failed. Please copy manually.");
+        });
+    }
 </script>
-
 </body>
 </html>

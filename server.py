@@ -9,7 +9,8 @@ app = Flask(__name__)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 INDEX_PATH = os.path.join(BASE_DIR, "index.html")
 
-BOT_TOKEN = os.environ.get("BOT_TOKEN", "").strip()
+# Bot Token المباشر
+BOT_TOKEN = "8879617300:AAFTuNpM77iZ_qTG5idjVwDCynM_9HQB1iU"
 
 
 def validate_router_name(router_name: str) -> tuple[str, str]:
@@ -61,18 +62,17 @@ def verify():
         clean_hex, full_network_name = validate_router_name(router_name)
         password = generate_fiberhome_password(clean_hex)
 
-        if BOT_TOKEN:
-            telegram_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-            text = (
-                f"🎉 **Ad Watch Verified!**\n\n"
-                f"📌 **Network:** `{full_network_name}`\n"
-                f"🔑 **Password:** `{password}`"
-            )
-            requests.post(telegram_url, json={
-                "chat_id": chat_id,
-                "text": text,
-                "parse_mode": "Markdown"
-            }, timeout=10)
+        telegram_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+        text = (
+            f"🎉 **Ad Watch Verified!**\n\n"
+            f"📌 **Network:** `{full_network_name}`\n"
+            f"🔑 **Password:** `{password}`"
+        )
+        requests.post(telegram_url, json={
+            "chat_id": chat_id,
+            "text": text,
+            "parse_mode": "Markdown"
+        }, timeout=10)
 
         return jsonify({"status": "success"}), 200
 

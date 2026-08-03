@@ -3,8 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Watching Ad</title>
+    <title>Ad Verification</title>
+
+    <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <!-- Monetag Telegram Mini App SDK -->
+    <script src="https://libtl.com/sdk.js" data-zone="11487502" data-sdk="show_11487502"></script>
+
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -28,63 +34,82 @@
             max-width: 320px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
-        .timer-circle {
-            font-size: 42px;
-            font-weight: bold;
-            color: #64b5f6;
-            margin: 20px 0;
-        }
         .status-text {
             font-size: 15px;
-            color: #e0e0e0;
-            line-height: 1.5;
+            color: #64b5f6;
+            margin-bottom: 24px;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+        .btn-watch {
+            background-color: #2ea6ff;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 14px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.2s, opacity 0.2s;
+        }
+        .btn-watch:disabled {
+            background-color: #555555;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .btn-watch:active:not(:disabled) {
+            background-color: #1a8ad8;
         }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <div class="status-text">Please wait for the ad timer to finish to unlock your password...</div>
-    <div id="timer" class="timer-circle">10</div>
-    <div id="subtext" style="font-size: 12px; color: #888;">Do not close this window</div>
+    <div id="status" class="status-text">Click the button below to watch the ad and unlock your Wi-Fi password.</div>
+    <button id="adBtn" class="btn-watch" onclick="watchRewardedAd()">🎬 Watch Ad to Unlock</button>
 </div>
 
 <script>
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    const AD_URL = "https://www.po38trk.com/4g9f3900?key=901a1c3bb5bfadbb0c0f993d077c5708";
-    const REQUIRED_SECONDS = 10;
-    
-    let timeLeft = REQUIRED_SECONDS;
-    const timerDisplay = document.getElementById('timer');
-    
-    // استخراج اسم الراوتر من الرابط
+    // استخراج اسم الراوتر من الـ Query String
     const urlParams = new URLSearchParams(window.location.search);
     const routerName = urlParams.get('name') || '';
 
-    // فتح الإعلان تلقائياً عند التحميل
-    window.onload = function() {
-        window.open(AD_URL, '_blank');
-        
-        const countdown = setInterval(() => {
-            timeLeft--;
-            timerDisplay.innerText = timeLeft;
-            
-            if (timeLeft <= 0) {
-                clearInterval(countdown);
-                timerDisplay.innerText = "✓";
-                timerDisplay.style.color = "#2ecc71";
-                document.getElementById('subtext').innerText = "Verifying...";
-                
-                // إرسال البيانات للبوت وإغلاق الميني آب فوراً
+    function watchRewardedAd() {
+        const btn = document.getElementById('adBtn');
+        const status = document.getElementById('status');
+
+        btn.disabled = true;
+        status.innerText = "Loading ad...";
+        status.style.color = "#f1c40f";
+
+        // التحقق من توفر دالة Monetag الخاصة بالـ Zone ID
+        if (typeof show_11487502 === 'function') {
+            show_11487502().then(() => {
+                // تنجح فقط إذا شاهد المستخدم الإعلان كاملاً
+                status.innerText = "✅ Ad verified successfully! Unlocking password...";
+                status.style.color = "#2ecc71";
+
                 setTimeout(() => {
                     tg.sendData(JSON.stringify({ name: routerName }));
                     tg.close();
-                }, 500);
-            }
-        }, 1000);
-    };
+                }, 800);
+            }).catch((err) => {
+                // في حالة إغلاق الإعلان قبل انتشاره أو حدوث خطأ
+                console.error("Ad failed or closed early:", err);
+                status.innerText = "❌ You must watch the entire ad to receive your password.";
+                status.style.color = "#e74c3c";
+                btn.disabled = false;
+            });
+        } else {
+            status.innerText = "⚠️ Ad SDK is still loading. Please wait a few seconds and try again.";
+            status.style.color = "#e67e22";
+            btn.disabled = false;
+        }
+    }
 </script>
 </body>
 </html>

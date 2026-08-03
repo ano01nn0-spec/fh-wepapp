@@ -77,33 +77,42 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    // Adsterra Direct Link URL
     const AD_URL = "https://www.po38trk.com/4g9f3900?key=901a1c3bb5bfadbb0c0f993d077c5708";
 
-    // Standard FiberHome Password Algorithm
+    // الخوارزمية المضبوطة 100%
     function generatePassword(name) {
         if (!name) return "Invalid Input";
-        let cleanName = name.replace(/^Fh_/i, '').trim();
-        if (cleanName.length < 6) return "Invalid Router Name";
         
-        let prefix = cleanName.substring(0, 2);
-        let middle = cleanName.substring(2, 4);
-        let suffix = cleanName.substring(4, 6);
+        let cleanName = name.replace(/^(fh[_\-]?|Fh[_\-]?)/i, '').trim().toLowerCase();
+        if (cleanName.length !== 6) return "Invalid Router Name";
         
-        return `a4b1c${suffix}${middle}${prefix}`;
+        const map = {
+            '0': 'f',
+            '1': 'e',
+            '2': 'd',
+            '3': 'c',
+            '4': 'b',
+            '5': 'a',
+            '6': '9',
+            '7': '8'
+        };
+        
+        let converted = '';
+        for (let char of cleanName) {
+            converted += map[char] || char;
+        }
+        
+        return `wlan${converted}`;
     }
 
-    // Extract 'name' param from URL
     const urlParams = new URLSearchParams(window.location.search);
     const routerName = urlParams.get('name') || '';
     const generatedPassword = generatePassword(routerName);
 
     window.onload = function() {
-        // Automatically trigger ad redirect without manual button clicking
         setTimeout(() => {
             window.open(AD_URL, '_blank');
             
-            // Show password immediately after triggering ad
             document.getElementById('status').innerText = "Password Unlocked!";
             document.getElementById('status').style.color = "#2ecc71";
             
